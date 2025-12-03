@@ -1,26 +1,32 @@
 <?php
 // vendedor/pedidos.php
-require_once __DIR__ . '/../includes/header.php';
 
+// 1. CARGAR DEPENDENCIAS MANUALMENTE (Sin HTML todavía)
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/functions.php';
+
+// 2. SEGURIDAD
 if (!is_logged_in() || $_SESSION['user_rol'] !== 'vendedor') {
     redirect('index.php');
 }
 
 $id_vendedor = $_SESSION['user_id'];
 
-// --- LÓGICA DE ACTUALIZAR STATUS ---
+// 3. LÓGICA DE ACTUALIZAR STATUS (Antes del Header)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['marcar_entregado_id'])) {
     $pedido_id = (int)$_POST['marcar_entregado_id'];
+    
     // Actualizamos el status a 3 (Entregado)
     $stmt = $pdo->prepare("UPDATE pedidos SET status = 3 WHERE id = :pid");
+    
     if ($stmt->execute(['pid' => $pedido_id])) {
         setMsg('success', 'Pedido marcado como entregado.');
+        // Ahora la redirección funcionará perfectamente
         redirect('vendedor/pedidos.php');
     }
 }
 
-// --- CONSULTA COMPLEJA ---
-// Trae los datos del pedido, del cliente y del producto específico de este vendedor
+// 4. CONSULTA DE PEDIDOS (Antes del Header)
 $sql = "SELECT p.id as pedido_id, p.fecha, p.status, p.metodo_pago, p.lugar_entrega,
                c.nombre as cliente, c.correo,
                dp.cantidad, dp.precio as precio_venta,
@@ -35,6 +41,9 @@ $sql = "SELECT p.id as pedido_id, p.fecha, p.status, p.metodo_pago, p.lugar_entr
 $stmt = $pdo->prepare($sql);
 $stmt->execute(['vid' => $id_vendedor]);
 $pedidos = $stmt->fetchAll();
+
+// 5. AHORA SÍ: CARGAR LA VISTA
+require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -56,12 +65,14 @@ $pedidos = $stmt->fetchAll();
                  3 => ['color' => 'success', 'texto' => '✓ Finalizado'],
                  default => ['color' => 'secondary', 'texto' => 'Desconocido']
              };
+             
              $img = $row['archivo'] ? "../uploads/productos/".$row['archivo'] : "https://via.placeholder.com/80";
+             if(!file_exists(__DIR__ . "/../uploads/productos/" . $row['archivo'])) $img = "https://via.placeholder.com/80?text=Sin+Foto";
         ?>
             <div class="col-lg-6">
                 <div class="card border-0 shadow-sm rounded-4 h-100">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center border-0 pt-3 px-4">
-                        <span class="fw-bold">Pedido #<?php echo str_pad($row['pedido_id'], 5, "0", STR_PAD_LEFT); ?></span>
+                        <span class="fw-bold text-primary">Pedido #<?php echo str_pad($row['pedido_id'], 5, "0", STR_PAD_LEFT); ?></span>
                         <span class="badge bg-<?php echo $estado['color']; ?> bg-opacity-10 text-<?php echo $estado['color']; ?> px-3 py-2 rounded-pill">
                             <?php echo $estado['texto']; ?>
                         </span>
@@ -71,7 +82,7 @@ $pedidos = $stmt->fetchAll();
                         <div class="d-flex align-items-start mb-3">
                             <img src="<?php echo $img; ?>" class="rounded-3 border me-3" style="width: 70px; height: 70px; object-fit: cover;">
                             <div>
-                                <h6 class="fw-bold mb-1"><?php echo e($row['producto']); ?></h6>
+                                <h6 class="fw-bold mb-1 text-dark"><?php echo e($row['producto']); ?></h6>
                                 <p class="mb-0 text-muted small">Cantidad: <strong><?php echo $row['cantidad']; ?></strong></p>
                                 <p class="mb-0 text-success fw-bold">Cobrar: $<?php echo number_format($row['cantidad'] * $row['precio_venta'], 2); ?></p>
                             </div>
@@ -81,7 +92,7 @@ $pedidos = $stmt->fetchAll();
                             <div class="small text-muted text-uppercase fw-bold mb-1">Cliente</div>
                             <div class="d-flex align-items-center mb-2">
                                 <i class="fas fa-user-circle me-2 text-secondary"></i>
-                                <span><?php echo e($row['cliente']); ?></span>
+                                <span class="fw-bold text-dark"><?php echo e($row['cliente']); ?></span>
                             </div>
                             <div class="small text-muted text-uppercase fw-bold mb-1 mt-2">Punto de Encuentro</div>
                             <div class="d-flex align-items-start">
@@ -93,12 +104,12 @@ $pedidos = $stmt->fetchAll();
                         <?php if ($row['status'] != 3): ?>
                             <form method="POST">
                                 <input type="hidden" name="marcar_entregado_id" value="<?php echo $row['pedido_id']; ?>">
-                                <button type="submit" class="btn btn-success w-100 rounded-pill shadow-sm" onclick="return confirm('¿Confirmas que ya entregaste el producto?');">
-                                    <i class="fas fa-check-double me-2"></i> Marcar como Entregado
+                                <button type="submit" class="btn btn-secondary w-100 rounded-pill shadow-sm py-2 fw-bold" onclick="return confirm('¿Confirmas que ya entregaste el producto?');">
+                                    Entregado
                                 </button>
                             </form>
                         <?php else: ?>
-                             <button class="btn btn-secondary w-100 rounded-pill disabled" disabled>Entregado</button>
+                             <button class="btn btn-secondary w-100 rounded-pill disabled border-0 bg-opacity-25" disabled>Entregado</button>
                         <?php endif; ?>
                     </div>
                 </div>
