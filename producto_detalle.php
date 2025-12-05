@@ -104,6 +104,15 @@ require_once __DIR__ . '/includes/header.php';
                     <button type="submit" name="redireccion" value="producto" class="btn btn-outline-primary rounded-pill px-4 fw-bold flex-grow-1">Agregar</button>
                     <button type="submit" name="redireccion" value="checkout" class="btn btn-primary rounded-pill px-4 fw-bold flex-grow-1 shadow">Comprar</button>
                 </form>
+            
+            <?php if (is_logged_in() && $_SESSION['user_rol'] === 'comprador' && !$soy_vendedor): ?>
+                    <a href="reportar_producto.php?id=<?= $p['id']; ?>" 
+                    class="btn btn-danger rounded-pill mt-3 w-100 fw-bold">
+                    Reportar este producto
+                    </a>
+            <?php endif; ?>
+    
+
             <?php else: ?>
                 <div class="alert alert-danger border-0 rounded-4 w-100 text-center">
                     <i class="fas fa-times-circle me-2"></i> <strong>Producto Agotado</strong>
