@@ -227,24 +227,6 @@ INSERT INTO `resenas` (`id`, `producto_id`, `usuario_id`, `calificacion`, `comen
 (4, 5, 7, 5, 'cagada de vendedor', '2025-12-02 01:30:18'),
 (5, 5, 7, 5, 'wawaw', '2025-12-02 01:32:21');
 
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `reportes`
---
-
-CREATE TABLE reportes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    producto_id INT NOT NULL,
-    comprador_id INT NOT NULL,
-    motivo TEXT NOT NULL,
-    estado ENUM('pendiente','revisado') DEFAULT 'pendiente',
-    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (producto_id) REFERENCES productos(id),
-    FOREIGN KEY (comprador_id) REFERENCES clientes(id)
-);
-
-
 --
 -- Índices para tablas volcadas
 --
@@ -336,6 +318,24 @@ ALTER TABLE `promociones`
 --
 ALTER TABLE `resenas`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `reportes`
+--
+
+CREATE TABLE reportes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    producto_id INT NOT NULL,
+    comprador_id INT NOT NULL,
+    motivo TEXT NOT NULL,
+    estado ENUM('pendiente','revisado') DEFAULT 'pendiente',
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (producto_id) REFERENCES productos(id),
+    FOREIGN KEY (comprador_id) REFERENCES clientes(id)
+);
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
